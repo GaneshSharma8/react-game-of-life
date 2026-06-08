@@ -1,0 +1,11 @@
+{
+  "name": "react-game-of-life",
+  "version": "1.0.0",
+  "description": "Conway's Game of Life, made with React.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "ganesh sharma"
+}
