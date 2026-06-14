@@ -45,8 +45,8 @@ export const GameGrid: React.FC<IGameGridProps> = ({
 
   return (
     <div 
-      // select-none prevents the browser from highlighting text while dragging
-      className={`${GRID_THEME.viewportWrapper} ${className} select-none`}
+      // 'touch-none' to lock out the mobile browser window panning engines completely
+      className={`${GRID_THEME.viewportWrapper} ${className} select-none touch-none`}
       {...props}
       
       // Desktop Mouse Tracking
@@ -59,9 +59,13 @@ export const GameGrid: React.FC<IGameGridProps> = ({
       onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
 
       // Mobile Touchscreen Tracking
-      onTouchStart={() => setIsDrawing(true)}
+      onTouchStart={(e) => {
+        e.preventDefault(); // Prevents default double-tap zoom behavior 
+        setIsDrawing(true);
+      }}
       onTouchEnd={stopDrawing}
       onTouchMove={(e) => {
+        e.preventDefault(); // Forces the mobile view structure to process drawing coordinates instead of page scrolling
         const touch = e.touches[0];
         if (touch) {
           handlePointerMove(touch.clientX, touch.clientY);
@@ -80,7 +84,7 @@ export const GameGrid: React.FC<IGameGridProps> = ({
             <Cell
               key={`${rowIndex}-${colIndex}`}
               state={cellState}
-              onClick={() => onCellClick(rowIndex, colIndex)}
+              onClick={(_e) => onCellClick(rowIndex, colIndex)}
               
               // Inject structural row/col attributes directly into the HTML node
               {...({
