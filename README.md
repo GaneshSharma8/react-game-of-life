@@ -11,3 +11,10 @@
 ### How To Deploy
 - Github Pages
   - npm run deploy
+
+### What's Done ?
+- Basic Game of Life setup with a grid of cells
+- Shareable urls for the initial game state
+
+### What's Next ?
+- 

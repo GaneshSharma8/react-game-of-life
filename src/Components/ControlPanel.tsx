@@ -1,12 +1,7 @@
 import type React from "react";
 import { Button } from "./ui/Button";
+import type { IControlPanelProps } from "../types";
 
-interface IControlPanelProps {
-  isRunning: boolean;
-  onStart: () => void;
-  onStop: () => void;
-  onReset: () => void;
-}
 
 export const ControlPanel: React.FC<IControlPanelProps> = ({
   isRunning,

@@ -1,12 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { CellState } from "../Components/Cell";
-
-interface GameState {
-  rows: number;
-  cols: number;
-  grid: CellState[][];
-  isRunning: boolean;
-}
+import type { CellState, GameState } from "../types";
 
 const ROWS = 50;
 const COLS = 50;

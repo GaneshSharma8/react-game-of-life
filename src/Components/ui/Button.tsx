@@ -1,12 +1,5 @@
 import type React from "react";
-
-export type ButtonVariant = 'emerald' | 'amber' | 'slate'
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  icon?: string;
-  children: React.ReactNode;
-}
+import type { ButtonProps, ButtonVariant } from "../../types";
 
 export const Button: React.FC<ButtonProps> = ({
   variant = "slate",

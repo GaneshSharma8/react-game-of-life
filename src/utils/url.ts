@@ -1,4 +1,4 @@
-import type { CellState } from "../Components/Cell";
+import type { CellState } from "../types";
 
 /**
  * Encodes ONLY the coordinates of living cells into a short, dense URL token.
