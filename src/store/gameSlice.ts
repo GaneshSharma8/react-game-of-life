@@ -77,9 +77,13 @@ export const gameSlice = createSlice({
     hydrateGridFromUrl: (state, action: PayloadAction<CellState[][]>) => {
       state.grid = action.payload;
       state.isRunning = false;
-    }
+    },
+    setCellAlive: (state, action: PayloadAction<{ row: number; col: number }>) => {
+      const { row, col } = action.payload;
+      state.grid[row][col] = "alive";
+    },
   },
 });
 
-export const { toggleCellState, setSimulationRunning, clearGrid, advanceGeneration, hydrateGridFromUrl } = gameSlice.actions;
+export const { toggleCellState, setSimulationRunning, clearGrid, advanceGeneration, hydrateGridFromUrl, setCellAlive } = gameSlice.actions;
 export default gameSlice.reducer;

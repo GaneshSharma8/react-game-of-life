@@ -2,13 +2,15 @@ export interface IGameGridProps extends React.HTMLAttributes<HTMLDivElement> {
   // A 2D array of ('alive' | 'dead')[][]
   grid: CellState[][]; 
   onCellClick: (row: number, col: number) => void;
+  onCellDraw: (row: number, col: number) => void;
 }
 
 export type CellState = 'alive' | 'dead';
 
-export interface ICellProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ICellProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
   state: CellState;
-  onClick: () => void;
+  // Allow React's standard onClick signature (MouseEventHandler) for <button>
+  onClick: React.MouseEventHandler<HTMLButtonElement>; 
 }
 
 export interface IControlPanelProps {
@@ -32,3 +34,4 @@ export interface GameState {
   grid: CellState[][];
   isRunning: boolean;
 }
+

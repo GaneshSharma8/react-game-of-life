@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type RootState } from "../store";
 import {
   toggleCellState,
+  setCellAlive,
   setSimulationRunning,
   clearGrid,
   advanceGeneration,
@@ -26,7 +27,6 @@ export const Game: React.FC = () => {
 
     if (startParam) {
       try {
-        // Hydrate grid matching our global 50x50 tracks
         const targetGrid = createGrid(startParam, 50, 50);
         dispatch(hydrateGridFromUrl(targetGrid));
       } catch (error) {
@@ -45,6 +45,10 @@ export const Game: React.FC = () => {
 
   const handleCellClick = (row: number, col: number) => {
     dispatch(toggleCellState({ row, col }));
+  };
+
+  const handleCellDraw = (row: number, col: number) => {
+    dispatch(setCellAlive({ row, col }));
   };
 
   const handleStart = () => {
@@ -89,7 +93,11 @@ export const Game: React.FC = () => {
       </section>
 
       <section className="w-full">
-        <GameGrid grid={grid} onCellClick={handleCellClick} />
+        <GameGrid 
+          grid={grid} 
+          onCellClick={handleCellClick} 
+          onCellDraw={handleCellDraw} 
+        />
       </section>
     </main>
   );
