@@ -1,10 +1,12 @@
 import type React from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { type RootState } from "../store";
 import {
   toggleCellState,
   setSimulationRunning,
   clearGrid,
+  advanceGeneration,
 } from "../store/gameSlice";
 import { GameGrid } from "./GameGrid";
 import { ControlPanel } from "./ControlPanel";
@@ -14,6 +16,20 @@ export const Game: React.FC = () => {
   
   const grid = useSelector((state: RootState) => state.game.grid);
   const isRunning = useSelector((state: RootState) => state.game.isRunning);
+
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const tick = () => {
+      dispatch(advanceGeneration());
+    };
+    const intervalId = setInterval(tick, 100);
+
+    // RAII / Garbage Collection Cleanup: 
+    // This function automatically triggers the millisecond isRunning flips to false,
+    // ensuring we never leak rogue intervals or cause race conditions in memory.
+    return () => clearInterval(intervalId);
+  }, [isRunning, dispatch]);
 
   const handleCellClick = (row: number, col: number) => {
     dispatch(toggleCellState({ row, col }));
