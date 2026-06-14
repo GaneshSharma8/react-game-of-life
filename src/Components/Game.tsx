@@ -1,40 +1,27 @@
-import type React from 'react';
-import { GameGrid } from './GameGrid';
-import { ControlPanel } from './ControlPanel';
-import type { CellState } from './Cell';
-import { useState } from 'react';
-
-const ROWS = 50;
-const COLUMNS = 50;
-
-const createInitialGrid = (): CellState[][] =>
-  Array.from({ length: ROWS }, () => Array(COLUMNS).fill('dead'));
-
-const toggleGridCell = (prevGrid: CellState[][], row: number, col: number): CellState[][] => {
-  return prevGrid.map((currentRow, rIdx) =>
-    currentRow.map((cellState, cIdx) => {
-      if (rIdx === row && cIdx === col) {
-        return cellState === 'alive' ? 'dead' : 'alive';
-      }
-      return cellState;
-    })
-  );
-};
+import type React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { type RootState } from "../store";
+import {
+  toggleCellState,
+  setSimulationRunning,
+  clearGrid,
+} from "../store/gameSlice";
+import { GameGrid } from "./GameGrid";
+import { ControlPanel } from "./ControlPanel";
 
 export const Game: React.FC = () => {
-  const [grid, setGrid] = useState<CellState[][]>(() => createInitialGrid());
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const dispatch = useDispatch();
+  
+  const grid = useSelector((state: RootState) => state.game.grid);
+  const isRunning = useSelector((state: RootState) => state.game.isRunning);
 
   const handleCellClick = (row: number, col: number) => {
-    setGrid((currentGrid) => toggleGridCell(currentGrid, row, col));
+    dispatch(toggleCellState({ row, col }));
   };
 
-  const handleStart = () => setIsRunning(true);
-  const handleStop = () => setIsRunning(false);
-  const handleReset = () => {
-    setIsRunning(false);
-    setGrid(createInitialGrid());
-  };
+  const handleStart = () => dispatch(setSimulationRunning(true));
+  const handleStop = () => dispatch(setSimulationRunning(false));
+  const handleReset = () => dispatch(clearGrid());
 
   return (
     <main className="game-container min-h-screen bg-slate-900 py-8 px-4 flex flex-col items-center">
@@ -44,7 +31,6 @@ export const Game: React.FC = () => {
         </h1>
       </header>
 
-      {/* Control Panel Section */}
       <section aria-label="Control Panel" className="w-full mb-4">
         <ControlPanel
           isRunning={isRunning}
@@ -54,10 +40,9 @@ export const Game: React.FC = () => {
         />
       </section>
 
-      {/* Game Grid Section */}
       <section className="w-full">
         <GameGrid grid={grid} onCellClick={handleCellClick} />
       </section>
     </main>
   );
-}
+};
