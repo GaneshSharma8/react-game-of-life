@@ -7,26 +7,26 @@ import { useState } from 'react';
 const ROWS = 50;
 const COLUMNS = 50;
 
-// Helper to instantiate a clean 50x50 multi-dimensional array
 const createInitialGrid = (): CellState[][] =>
   Array.from({ length: ROWS }, () => Array(COLUMNS).fill('dead'));
+
+const toggleGridCell = (prevGrid: CellState[][], row: number, col: number): CellState[][] => {
+  return prevGrid.map((currentRow, rIdx) =>
+    currentRow.map((cellState, cIdx) => {
+      if (rIdx === row && cIdx === col) {
+        return cellState === 'alive' ? 'dead' : 'alive';
+      }
+      return cellState;
+    })
+  );
+};
 
 export const Game: React.FC = () => {
   const [grid, setGrid] = useState<CellState[][]>(() => createInitialGrid());
   const [isRunning, setIsRunning] = useState<boolean>(false);
 
   const handleCellClick = (row: number, col: number) => {
-    setGrid((prevGrid) => {
-      // Map over previous rows to guarantee immutability
-      return prevGrid.map((currentRow, rIdx) =>
-        currentRow.map((cellState, cIdx) => {
-          if (rIdx === row && cIdx === col) {
-            return cellState === 'alive' ? 'dead' : 'alive';
-          }
-          return cellState;
-        })
-      );
-    });
+    setGrid((currentGrid) => toggleGridCell(currentGrid, row, col));
   };
 
   const handleStart = () => setIsRunning(true);
@@ -40,7 +40,7 @@ export const Game: React.FC = () => {
     <main className="game-container min-h-screen bg-slate-900 py-8 px-4 flex flex-col items-center">
       <header className="mb-6">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">
-          Conway's Game of Life
+          Game of Life
         </h1>
       </header>
 
