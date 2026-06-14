@@ -7,9 +7,11 @@ import {
   setSimulationRunning,
   clearGrid,
   advanceGeneration,
+  hydrateGridFromUrl,
 } from "../store/gameSlice";
 import { GameGrid } from "./GameGrid";
 import { ControlPanel } from "./ControlPanel";
+import { createGrid, createToken } from "../utils/url";
 
 export const Game: React.FC = () => {
   const dispatch = useDispatch();
@@ -17,17 +19,27 @@ export const Game: React.FC = () => {
   const grid = useSelector((state: RootState) => state.game.grid);
   const isRunning = useSelector((state: RootState) => state.game.isRunning);
 
+  // ON PAGE INITIALIZATION (READ URL)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get("start");
+
+    if (startParam) {
+      try {
+        // Hydrate grid matching our global 50x50 tracks
+        const targetGrid = createGrid(startParam, 50, 50);
+        dispatch(hydrateGridFromUrl(targetGrid));
+      } catch (error) {
+        console.error("Failed to decode grid state from share link:", error);
+      }
+    }
+  }, [dispatch]);
+
+  // BACKGROUND SIMULATION TICKER
   useEffect(() => {
     if (!isRunning) return;
-
-    const tick = () => {
-      dispatch(advanceGeneration());
-    };
+    const tick = () => dispatch(advanceGeneration());
     const intervalId = setInterval(tick, 100);
-
-    // RAII / Garbage Collection Cleanup: 
-    // This function automatically triggers the millisecond isRunning flips to false,
-    // ensuring we never leak rogue intervals or cause race conditions in memory.
     return () => clearInterval(intervalId);
   }, [isRunning, dispatch]);
 
@@ -35,9 +47,29 @@ export const Game: React.FC = () => {
     dispatch(toggleCellState({ row, col }));
   };
 
-  const handleStart = () => dispatch(setSimulationRunning(true));
-  const handleStop = () => dispatch(setSimulationRunning(false));
-  const handleReset = () => dispatch(clearGrid());
+  const handleStart = () => {
+    // Generate the deterministic compressed token from current state
+    const compressedToken = createToken(grid);
+    
+    // Set url search query parameter without reloading the client tab
+    const newUrl = `${window.location.pathname}?start=${compressedToken}`;
+    window.history.pushState({ path: newUrl }, "", newUrl);
+
+    // Start the loop
+    dispatch(setSimulationRunning(true));
+  };
+
+  const handleStop = () => {
+    dispatch(setSimulationRunning(false));
+  };
+
+  const handleReset = () => {
+    // 1. Clean query strings and reset pathname back to pure slash layout
+    window.history.pushState({ path: window.location.pathname }, "", window.location.pathname);
+    
+    // 2. Clean out datastore memory nodes
+    dispatch(clearGrid());
+  };
 
   return (
     <main className="game-container min-h-screen bg-slate-900 py-8 px-4 flex flex-col items-center">
