@@ -7,29 +7,60 @@ import {
   setSimulationRunning,
   clearGrid,
   advanceGeneration,
+  updateWholeGrid,
 } from "../store/gameSlice";
 import { GameGrid } from "./GameGrid";
 import { ControlPanel } from "./ControlPanel";
+import type { CellState } from "./Cell";
 
 export const Game: React.FC = () => {
   const dispatch = useDispatch();
-  
+
   const grid = useSelector((state: RootState) => state.game.grid);
   const isRunning = useSelector((state: RootState) => state.game.isRunning);
 
+  // Inside src/components/Game.tsx
   useEffect(() => {
     if (!isRunning) return;
 
-    const tick = () => {
-      dispatch(advanceGeneration());
+    // Initialize two separate background thread workers
+    const worker1 = new Worker(new URL("../workers/life.worker.ts", import.meta.url), { type: "module" });
+    const worker2 = new Worker(new URL("../workers/life.worker.ts", import.meta.url), { type: "module" });
+
+    const tick = async () => {
+      // Divide our 50 rows into two parallel batches: 0-25 and 25-50
+      const midPoint = 25;
+
+      // Wrap worker messaging in promises so we can await their parallel resolution
+      const runWorkerChunk = (worker: Worker, startRow: number, endRow: number) => {
+        return new Promise<{ processedRows: CellState[][]; startRow: number }>((resolve) => {
+          worker.onmessage = (e) => resolve(e.data);
+          worker.postMessage({ grid, startRow, endRow, rows: 50, cols: 50 });
+        });
+      };
+
+      // Fork: Fire off both threads simultaneously
+      const [batch1, batch2] = await Promise.all([
+        runWorkerChunk(worker1, 0, midPoint),
+        runWorkerChunk(worker2, midPoint, 50)
+      ]);
+
+      // Join: Concatenate the processed row batches back into a single 50x50 matrix
+      const nextGrid = [...batch1.processedRows, ...batch2.processedRows];
+
+      // Commit transaction to Redux state
+      dispatch(updateWholeGrid(nextGrid));
     };
+
     const intervalId = setInterval(tick, 100);
 
-    // RAII / Garbage Collection Cleanup: 
-    // This function automatically triggers the millisecond isRunning flips to false,
-    // ensuring we never leak rogue intervals or cause race conditions in memory.
-    return () => clearInterval(intervalId);
-  }, [isRunning, dispatch]);
+    // Terminate workers on stop/unmount to prevent memory leaks
+    return () => {
+      clearInterval(intervalId);
+      worker1.terminate();
+      worker2.terminate();
+    };
+  }, [isRunning, grid, dispatch]);
 
   const handleCellClick = (row: number, col: number) => {
     dispatch(toggleCellState({ row, col }));

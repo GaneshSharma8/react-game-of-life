@@ -62,6 +62,9 @@ export const gameSlice = createSlice({
       state.grid = generateEmptyGrid(state.rows, state.cols);
       state.isRunning = false;
     },
+    updateWholeGrid: (state, action: PayloadAction<CellState[][]>) => {
+      state.grid = action.payload;
+    },
     advanceGeneration: (state) => {
       const currentGrid = state.grid;
       // Map structures out to respect deep references
@@ -84,5 +87,5 @@ export const gameSlice = createSlice({
   },
 });
 
-export const { toggleCellState, setSimulationRunning, clearGrid, advanceGeneration } = gameSlice.actions;
+export const { toggleCellState, setSimulationRunning, clearGrid, advanceGeneration, updateWholeGrid } = gameSlice.actions;
 export default gameSlice.reducer;
